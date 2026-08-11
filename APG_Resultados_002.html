@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoría Puentes Grúa · Junio 2026</title>
+<style>
+  :root {
+    --navy: #0D5244;
+    --navy-mid: #18856F;
+    --steel: #1EA389;
+    --accent: #e8a020;
+    --accent-light: #f5c55a;
+    --danger: #c0392b;
+    --danger-light: #fdecea;
+    --success: #1a7a4a;
+    --success-light: #e3f4eb;
+    --warning: #d4780a;
+    --warning-light: #fef3e2;
+    --muted: #a5a2a2;
+    --dark: #000000;
+    --light: #f2f5f9;
+    --white: #ffffff;
+    --border: #d6e2ef;
+    --text: #1EA389;
+    --text-soft: #4a6278;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light); color: var(--text); font-size: 14px; line-height: 1.6; }
+
+  /* HEADER */
+  .header {
+    background: var(--navy);
+    color: white;
+    padding: 36px 48px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; right: -30px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(232,160,32,0.07);
+  }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .header-badge {
+    display: inline-block;
+    background: rgba(232,160,32,0.15);
+    border: 1px solid rgba(232,160,32,0.35);
+    color: var(--accent-light);
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 12px;
+  }
+  .header h1 { font-size: 30px; font-weight: 700; margin-bottom: 4px; }
+  .header-sub { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 28px; }
+  .header-kpis { display: flex; gap: 32px; flex-wrap: wrap; }
+  .hkpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em; color: rgba(255,255,255,0.4); }
+  .hkpi-val { font-size: 20px; font-weight: 700; color: white; }
+  .accent-line { height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-light) 50%, transparent); }
+
+  /* MAIN */
+  .main { max-width: 1060px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* SECTION TITLE */
+  .sec-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 20px; padding-bottom: 12px;
+    border-bottom: 2px solid var(--border);
+  }
+  .sec-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--navy); color: var(--white);
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .sec-title { font-size: 19px; font-weight: 700; color: var(--dark); }
+  .section { margin-bottom: 52px; }
+
+  /* CUMPLIMIENTO CARDS */
+  .cumpl-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; margin-bottom: 24px; }
+  .cumpl-card {
+    background: white; border: 1px solid var(--border); border-radius: 12px;
+    padding: 22px; position: relative; overflow: hidden;
+  }
+  .cumpl-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .cumpl-card.g::before { background: var(--warning); }
+  .cumpl-card.d::before { background: var(--danger); }
+  .cumpl-card.t::before { background: var(--danger); }
+  .cumpl-card.o::before { background: var(--danger); }
+  .cumpl-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .cumpl-name { font-weight: 700; font-size: 15px; color: var(--navy); }
+  .cumpl-sub { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+  .cumpl-pct { font-size: 28px; font-weight: 800; }
+  .pct-warn { color: var(--warning); }
+  .pct-bad { color: var(--danger); }
+  .pct-good { color: var(--success); }
+  .bar-bg { background: var(--light); border-radius: 6px; height: 9px; overflow: hidden; margin-bottom: 8px; }
+  .bar-fill { height: 100%; border-radius: 6px; }
+  .bar-warn-fill { background: linear-gradient(90deg, var(--warning), var(--accent)); }
+  .bar-bad-fill { background: linear-gradient(90deg, var(--danger), #e74c3c); }
+  .bar-good-fill { background: linear-gradient(90deg, var(--success), #2ecc71); }
+  .bar-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-soft); }
+  .missing-block { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); }
+  .missing-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 6px; }
+  .missing-item { font-size: 12px; color: var(--text-soft); padding: 3px 0; border-bottom: 1px dotted #eee; display: flex; gap: 6px; }
+  .missing-item:last-child { border-bottom: none; }
+  .missing-item::before { content: '—'; color: var(--danger); font-weight: 700; flex-shrink: 0; }
+
+  /* INTERACTIVE FILTER SECTION */
+  .filter-box {
+    background: white; border: 1px solid var(--border); border-radius: 14px;
+    padding: 28px; margin-bottom: 28px;
+  }
+  .filter-row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 0; }
+  .filter-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 200px; }
+  .filter-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dark); }
+  .filter-select {
+    appearance: none;
+    background: var(--light) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238fa3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 14px center;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 36px 10px 14px;
+    font-size: 14px; color: var(--dark);
+    cursor: pointer;
+    transition: border-color 0.2s;
+    font-family: inherit;
+  }
+  .filter-select:focus { outline: none; border-color: var(--steel); }
+  .filter-select:hover { border-color: var(--steel); }
+
+  /* SECTOR RESULTS */
+  .sector-result { display: none; }
+  .sector-result.active { display: block; }
+
+  .sector-title-bar {
+    background: var(--navy); color: white;
+    border-radius: 10px; padding: 16px 22px;
+    margin-bottom: 20px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .sector-name { font-size: 16px; font-weight: 700; }
+  .sector-meta { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+  .sector-score { font-size: 30px; font-weight: 800; color: #eee; }
+
+  .no-audit-banner {
+    background: #fff8e1; border: 1px solid rgba(212,120,10,0.3); border-radius: 10px;
+    padding: 20px 22px;
+    display: flex; align-items: center; gap: 14px;
+    font-size: 14px; color: var(--warning);
+  }
+  .no-audit-icon { font-size: 28px; }
+  
+
+  /* Q TABLE La tabla de respuestas */
+  .q-wrap { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+  .q-wrap-header {
+    background: var(--navy-mid); color: white;
+    padding: 12px 18px; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .q-wrap-header.toggle { cursor: pointer; user-select: none; justify-content: space-between; }
+  .q-wrap-header.toggle:hover { background: var(--navy); }
+  .q-toggle-left { display: flex; align-items: center; gap: 8px; }
+  .q-chevron { font-size: 10px; transition: transform 0.2s; opacity: 0.75; }
+  .q-wrap-header.toggle.open .q-chevron { transform: rotate(90deg); }
+  .q-collapsible-body { display: none; }
+  .q-collapsible-body.open { display: block; }
+  .q-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+  table.qtable { width: 100%; border-collapse: collapse; }
+  .qtable thead tr { background: var(--light); }
+  .qtable th { padding: 9px 16px; font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--dark); text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .qtable th:not(:first-child) { text-align: center; }
+  .qtable td { padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 13px;color: var(--text-soft) }
+  .qtable tr:last-child td { border-bottom: none; }
+  .qtable tr:hover td { background: rgba(44,74,110,0.03); }
+  .qtable td:not(:first-child) { text-align: center; }
+  .cat-row td { background: rgba(44,74,110,0.06); font-size: 11px; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.07em; padding: 7px 16px; border-top: 1px solid var(--border); }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-weight: 700; font-size: 12px; }
+  .pill-good { background: var(--success-light); color: var(--success); }
+  .pill-warn { background: var(--warning-light); color: var(--warning); }
+  .pill-bad { background: var(--danger-light); color: var(--danger); }
+  .pill-na { background: #f0f0f0; color: #8d8b8b; font-size: 11px; font-weight: 500; }
+
+  /* PG INDIVIDUAL TABLE */
+  .pg-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .pg-tab {
+    padding: 7px 14px; border-radius: 20px; cursor: pointer;
+    font-size: 12px; font-weight: 600;
+    background: var(--light); border: 1.5px solid var(--border); color: var(--text-soft);
+    transition: all 0.15s;
+  }
+  .pg-tab:hover { border-color: var(--steel); color: var(--steel); }
+  .pg-tab.active { background: var(--navy); border-color: var(--navy); color: white; }
+  .pg-tab.has-obs { border-color: var(--navy); }
+  .pg-tab.has-obs.active { background: var(--navy); border-color: var(--warning); }
+  .pg-panel { display: none; }
+  .pg-panel.active { display: block; }
+
+  .pg-detail {
+    background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+  }
+  .pg-detail-header {
+    background: var(--light); padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .pg-detail-name { font-size: 13px; font-weight: 700; color: var(--navy); }
+  .pg-obs-banner {
+    background: var(--warning-light); border-top: 1px solid rgba(212,120,10,0.2);
+    padding: 12px 18px; font-size: 13px; color: var(--warning);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  table.pg-table { width: 100%; border-collapse: collapse; }
+  .pg-table td { padding: 10px 18px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .pg-table tr:last-child td { border-bottom: none; }
+  .pg-table tr:hover td { background: rgba(44,74,110,0.03); }
+  .pg-table td:first-child { color: var(--text-soft); width: 62%; }
+  .pg-table td:last-child { text-align: center; font-weight: 700; }
+  .resp-si { color: var(--success); }
+  .resp-no { color: var(--danger); }
+  .resp-na { color: #999; font-weight: 400; font-size: 12px; }
+  .pg-cat-row td { background: rgba(44,74,110,0.05); font-size: 11px; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.07em; padding: 6px 18px; border-top: 1px solid var(--border); }
+
+  /* PLACEHOLDER */
+  .placeholder-box {
+    background: white; border: 2px dashed var(--border); border-radius: 12px;
+    padding: 60px 40px; text-align: center; color: var(--muted);
+  }
+  .placeholder-icon { font-size: 48px; margin-bottom: 14px; }
+  .placeholder-text { font-size: 15px; }
+
+  /* FOOTER PIE DE PAGINA */
+  .footer { background: var(--navy); color: rgba(255,255,255,0.4); text-align: center; padding: 20px; font-size: 12px; }
+  .footer strong { color: rgba(255,255,255,0.65); }
+
+  @media(max-width:700px){
+    .cumpl-grid, .obs-grid { grid-template-columns: 1fr; }
+    .header { padding: 24px 20px; }
+    .main { padding: 28px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-badge">Informe de Auditoria· Departamento de Seguridad Industrial</div>
+      <h1>Auditoría de Puentes Grúa</h1>
+      <div class="header-sub">Edición 002 · Resultados por Gerencia y Sector</div>
+    </div>
+    <div style="font-size:28px;font-weight:800;color:white;opacity:0.9;text-align:right;">
+      39 / 48<div style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.08em">PG auditados / registrados</div>
+    </div>
+  </div>
+  <div class="header-kpis">
+    <div><div class="hkpi-label">Período</div><div class="hkpi-val">Junio 2026</div></div>
+    <div><div class="hkpi-label">Caracteristicas evaluadas</div><div class="hkpi-val">13 preguntas</div></div>
+    <div><div class="hkpi-label">Cobertura global</div><div class="hkpi-val">81.2%</div></div>
+  </div>
+</header>
+<div class="accent-line"></div>
+
+<main class="main">
+
+  <!-- SECCIÓN 1: CUMPLIMIENTO POR GERENCIA -->
+  <section class="section">
+    <div class="sec-header">
+      <div class="sec-num">1</div>
+      <div class="sec-title">Cumplimiento de Auditorías por Gerencia</div>
+    </div>
+    <div class="cumpl-grid">
+
+      <div class="cumpl-card g">
+        <div class="cumpl-head">
+          <div>
+            <div class="cumpl-name">⚡ Generación</div>
+            <div class="cumpl-sub">37 equipos registrados</div>
+          </div>
+          <div class="cumpl-pct pct-warn">81.1%</div>
+        </div>
+        <div class="bar-bg"><div class="bar-fill bar-warn-fill" style="width:81.1%"></div></div>
+        <div class="bar-meta"><span>✔ 30 auditados</span><span>7 incumplimientos</span></div>
+        <div class="missing-block">
+          <div class="missing-label">No auditados (7)</div>
+          <div class="missing-item">TGSOES-10SMA01 — Birriel 20 Tn Sala de Máquinas - CT Francisco Bazán</div><div class="missing-item">TGPILA-10SMA01 — Birriel 120 / 15 Tn Sala de Máquinas - CT Zanichelli</div><div class="missing-item">TGPILA-20SMA01 — Birriel 15 Tn Taller de Mantenimiento - CT Zanichelli</div><div class="missing-item">HICREJ-10SMA01 — Monorriel 3 Tn Sala de Máquinas - PAH El Ferroviario</div><div class="missing-item">HIREOL-30SMA01 — Pórtico 5 Tn Compuertas Principales - CH Reolín</div><div class="missing-item">HICAL2-10SMA01 — Birriel 10 / 10 Tn Sala de Máquinas - CH La Calera</div><div class="missing-item">RGDEHB-10SMA00 — Puentes Sala de Máquinas - CH Río Grande</div>
+        </div>
+      </div>
+
+      <div class="cumpl-card d">
+        <div class="cumpl-head">
+          <div>
+            <div class="cumpl-name">🔌 Distribución</div>
+            <div class="cumpl-sub">5 equipos registrados</div>
+          </div>
+          <div class="cumpl-pct pct-good">100%</div>
+        </div>
+        <div class="bar-bg"><div class="bar-fill bar-good-fill" style="width:100.0%"></div></div>
+        <div class="bar-meta"><span>✔ 5 auditados</span><span>0 incumplimientos</span></div>
+      </div>
+
+      <div class="cumpl-card t">
+        <div class="cumpl-head">
+          <div>
+            <div class="cumpl-name">🗼 Transmisión</div>
+            <div class="cumpl-sub">4 equipos registrados</div>
+          </div>
+          <div class="cumpl-pct pct-warn">75%</div>
+        </div>
+        <div class="bar-bg"><div class="bar-fill bar-warn-fill" style="width:75.0%"></div></div>
+        <div class="bar-meta"><span>✔ 3 auditados</span><span>1 incumplimiento</span></div>
+        <div class="missing-block">
+          <div class="missing-label">No auditados (1)</div>
+          <div class="missing-item">CVR-TE-005 — Birriel 5 Tn Taller Electromecánico - Complejo Villa Revol</div>
+        </div>
+      </div>
+
+      <div class="cumpl-card o">
+        <div class="cumpl-head">
+          <div>
+            <div class="cumpl-name">🏭 Otras Gerencias</div>
+            <div class="cumpl-sub">2 equipos registrados</div>
+          </div>
+          <div class="cumpl-pct pct-bad">50%</div>
+        </div>
+        <div class="bar-bg"><div class="bar-fill bar-bad-fill" style="width:50.0%"></div></div>
+        <div class="bar-meta"><span>✔ 1 auditado</span><span>1 incumplimiento</span></div>
+        <div class="missing-block">
+          <div class="missing-label">No auditados (1)</div>
+          <div class="missing-item">CVR-CCE-001 — Construcción de Centrales y Estaciones - Complejo Villa Revol</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN 3: RESPUESTAS POR SECTOR (INTERACTIVO) -->
+  <section class="section">
+    <div class="sec-header">
+      <div class="sec-num">2</div>
+      <div class="sec-title">Respuestas por Sector · Consulta Interactiva</div>
+    </div>
+
+    <div class="filter-box">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label class="filter-label">Gerencia</label>
+          <select class="filter-select" id="gerenciaSelect" onchange="filterSectors()">
+            <option value="">— Seleccioná gerencia —</option>
+            <option value="Generación">⚡ Generación</option>
+            <option value="Distribución">🔌 Distribución</option>
+            <option value="Transmisión">🗼 Transmisión</option>
+            <option value="Otras">🏭 Otras</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Sector</label>
+          <select class="filter-select" id="sectorSelect" onchange="showSector()">
+            <option value="">— Seleccioná un sector —</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="sectorDisplay">
+      <div class="placeholder-box">
+        <div class="placeholder-icon">🏗</div>
+        <div class="placeholder-text">Seleccioná una gerencia y un sector para ver el detalle de respuestas.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <strong>Auditoría de Puentes Grúa · Edición 002 </strong> &nbsp;·&nbsp; Departamento de Seguridad Industrial &nbsp;·&nbsp;
+</footer>
+
+<script>
+const DATA = {"sector_data": {"Zona F - Complejo Las Ferias (Río Cuarto) - Almacenes": {"gerencia": "Distribución", "total_pgs": 1, "audited_pgs": 1, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "3 - Gancho con traba de seguridad", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "8 - Frenos del carro en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "10 - Cable del polipasto en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "13 - Botonera de control en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}], "observations": [{"pg": "RIOFRCT-AL-001 — Birriel 20 Tn - Complejo Las Ferias Almacén", "text": "El puente grua esta en proceso de reparacion, la jefatura de delegacion ha tomado medidas concretas para su reparacion y puesta en funcionamiento."}], "pg_list": [{"pg": "RIOFRCT-AL-001 — Birriel 20 Tn - Complejo Las Ferias Almacén", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "No"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "No"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "No"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": "El puente grua esta en proceso de reparacion, la jefatura de delegacion ha tomado medidas concretas para su reparacion y puesta en funcionamiento."}], "missing_pgs": []}, "Zona A - Complejo Villa Revol - Construcción de Redes": {"gerencia": "Distribución", "total_pgs": 1, "audited_pgs": 1, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "3 - Gancho con traba de seguridad", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 0, "no": 0, "na": 1, "pct": null}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "8 - Frenos del carro en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 0, "no": 0, "na": 1, "pct": null}, {"label": "10 - Cable del polipasto en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "13 - Botonera de control en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}], "observations": [], "pg_list": [{"pg": "CVR-CR-001 — Zona A - Complejo Villa Revol (Construcción de Redes)", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No Aplica"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "No Aplica"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}], "missing_pgs": []}, "Mantenimiento de Líneas Aéreas Norte": {"gerencia": "Distribución", "total_pgs": 1, "audited_pgs": 1, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "3 - Gancho con traba de seguridad", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 0, "no": 0, "na": 1, "pct": null}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 0, "no": 0, "na": 1, "pct": null}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 0, "no": 0, "na": 1, "pct": null}, {"label": "7 - Final de carrera del carro de izaje", "si": 0, "no": 0, "na": 1, "pct": null}, {"label": "8 - Frenos del carro en condiciones", "si": 0, "no": 0, "na": 1, "pct": null}, {"label": "9 - Finales de carrera superior e inferior", "si": 0, "no": 0, "na": 1, "pct": null}, {"label": "10 - Cable del polipasto en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 0, "no": 0, "na": 1, "pct": null}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "13 - Botonera de control en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}], "observations": [], "pg_list": [{"pg": "MLAN-001 — Zona A - Mantenimiento de Líneas Aéreas Norte", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "No Aplica"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No Aplica"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "No Aplica"}, {"q": "7 - Final de carrera del carro de izaje", "r": "No Aplica"}, {"q": "8 - Frenos del carro en condiciones", "r": "No Aplica"}, {"q": "9 - Finales de carrera superior e inferior", "r": "No Aplica"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "No Aplica"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}], "missing_pgs": []}, "Mantenimiento Eléctrico y Estaciones Transformadoras Villa María": {"gerencia": "Distribución", "total_pgs": 1, "audited_pgs": 1, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "3 - Gancho con traba de seguridad", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "8 - Frenos del carro en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "10 - Cable del polipasto en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "13 - Botonera de control en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}], "observations": [], "pg_list": [{"pg": "VM-ET-001 — Zona C - Mantenimiento Eléctrico y ET Villa María", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}], "missing_pgs": []}, "Zona F - Complejo Las Ferias (Río Cuarto) - Taller electromecánico": {"gerencia": "Distribución", "total_pgs": 1, "audited_pgs": 1, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "2 - Gancho con carga máxima visible", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "3 - Gancho con traba de seguridad", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "7 - Final de carrera del carro de izaje", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "8 - Frenos del carro en condiciones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "9 - Finales de carrera superior e inferior", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "10 - Cable del polipasto en buen estado", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "13 - Botonera de control en buen estado", "si": 0, "no": 1, "na": 0, "pct": 0}], "observations": [{"pg": "RIOFRCT-TE-001 — Zona F - Taller Electromecánico Las Ferias", "text": "el puente grúa esta en pésimas condiciones de trabajo. Con autorización de Gerencia de transmisión, se pidió cotización para para realización de un revampig pero la empresa idónea en el tema no se quisieron realizarla. Al puente grúa lo usan contratistas externos a la empresa sin instrucción comprobable. Se necesita la intervención de Seguridad de forma URGENTE"}], "pg_list": [{"pg": "RIOFRCT-TE-001 — Zona F - Taller Electromecánico Las Ferias", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "No"}, {"q": "2 - Gancho con carga máxima visible", "r": "No"}, {"q": "3 - Gancho con traba de seguridad", "r": "No"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "No"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "No"}, {"q": "7 - Final de carrera del carro de izaje", "r": "No"}, {"q": "8 - Frenos del carro en condiciones", "r": "No"}, {"q": "9 - Finales de carrera superior e inferior", "r": "No"}, {"q": "10 - Cable del polipasto en buen estado", "r": "No"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "No"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "No"}, {"q": "13 - Botonera de control en buen estado", "r": "No"}], "obs": "el puente grúa esta en pésimas condiciones de trabajo. Con autorización de Gerencia de transmisión, se pidió cotización para para realización de un revampig pero la empresa idónea en el tema no se quisieron realizarla. Al puente grúa lo usan contratistas externos a la empresa sin instrucción comprobable. Se necesita la intervención de Seguridad de forma URGENTE"}], "missing_pgs": []}, "Zona A - Central Térmica Deán Funes": {"gerencia": "Generación", "total_pgs": 1, "audited_pgs": 1, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "3 - Gancho con traba de seguridad", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "8 - Frenos del carro en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "10 - Cable del polipasto en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "13 - Botonera de control en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}], "observations": [], "pg_list": [{"pg": "TGDFUN-10SMA01 — Birriel 20 Tn Sala de Máquinas— CT Deán Funes", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}], "missing_pgs": []}, "Zona A - Central Térmica Francisco Bazán (Sudoeste)": {"gerencia": "Generación", "total_pgs": 1, "audited_pgs": 0, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "2 - Gancho con carga máxima visible", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "3 - Gancho con traba de seguridad", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "7 - Final de carrera del carro de izaje", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "8 - Frenos del carro en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "9 - Finales de carrera superior e inferior", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "10 - Cable del polipasto en buen estado", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "13 - Botonera de control en buen estado", "si": 0, "no": 0, "na": 0, "pct": null}], "observations": [], "pg_list": [], "missing_pgs": ["TGSOES-10SMA01"]}, "Zona H - Central Térmica Ciclo Combinado Bicentenario": {"gerencia": "Generación", "total_pgs": 3, "audited_pgs": 3, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 3, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 3, "no": 0, "na": 0, "pct": 100}, {"label": "3 - Gancho con traba de seguridad", "si": 3, "no": 0, "na": 0, "pct": 100}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 3, "no": 0, "na": 0, "pct": 100}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 3, "no": 0, "na": 0, "pct": 100}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 3, "no": 0, "na": 0, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 3, "no": 0, "na": 0, "pct": 100}, {"label": "8 - Frenos del carro en condiciones", "si": 3, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 3, "no": 0, "na": 0, "pct": 100}, {"label": "10 - Cable del polipasto en buen estado", "si": 3, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 3, "no": 0, "na": 0, "pct": 100}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 3, "no": 0, "na": 0, "pct": 100}, {"label": "13 - Botonera de control en buen estado", "si": 3, "no": 0, "na": 0, "pct": 100}], "observations": [], "pg_list": [{"pg": "PILA-10SMA-TGS — Birriel 60 / 16 / 10 Tn — CC Bicentenario", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}, {"pg": "PILA-10SMA-TV10 — Birriel 10 Tn — CC Bicentenario", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}, {"pg": "PILA-10SMA-TV75 — Birriel 75 / 5 Tn — CC Bicentenario", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}], "missing_pgs": []}, "Zona C - Central Térmica Las Playas (Villa María)": {"gerencia": "Generación", "total_pgs": 4, "audited_pgs": 4, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 3, "no": 0, "na": 1, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 4, "no": 0, "na": 0, "pct": 100}, {"label": "3 - Gancho con traba de seguridad", "si": 4, "no": 0, "na": 0, "pct": 100}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 1, "no": 2, "na": 1, "pct": 33}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 0, "no": 3, "na": 1, "pct": 0}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 4, "no": 0, "na": 0, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 0, "no": 3, "na": 1, "pct": 0}, {"label": "8 - Frenos del carro en condiciones", "si": 3, "no": 0, "na": 1, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 2, "no": 2, "na": 0, "pct": 50}, {"label": "10 - Cable del polipasto en buen estado", "si": 4, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 0, "no": 3, "na": 1, "pct": 0}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 3, "no": 1, "na": 0, "pct": 75}, {"label": "13 - Botonera de control en buen estado", "si": 4, "no": 0, "na": 0, "pct": 100}], "observations": [{"pg": "TGVMAR-20SMA01 — Birriel 10 Tn Taller Eléctrico— CT Las Playas (Villa María)", "text": "LA TRASLACIÓN DEL CARRO DE REALIZA A TRAVÉS DE CADENAS. LA ALIMENTACIÓN ELÉCTRICA DEL PUENTE ES A TRAVÉS DE UNA PROLONGACIÓN."}, {"pg": "TGVMAR-20SMA03 — Monorriel 2 Tn Taller Mecánico Exterior— CT Las Playas (Villa María)", "text": "ES UN MONORIEL (PORTICO)"}, {"pg": "TGVMAR-10SMA01 — Birriel 20 Tn Sala de Turbinas— CT Las Playas (Villa María)", "text": "LA REPARACION DEL PUENTE GRUA SE ENCUENTRA EN PROCESO DE LICITACION."}], "pg_list": [{"pg": "TGVMAR-20SMA01 — Birriel 10 Tn Taller Eléctrico— CT Las Playas (Villa María)", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "No"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "No Aplica"}, {"q": "8 - Frenos del carro en condiciones", "r": "No Aplica"}, {"q": "9 - Finales de carrera superior e inferior", "r": "No"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "No"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": "LA TRASLACIÓN DEL CARRO DE REALIZA A TRAVÉS DE CADENAS. LA ALIMENTACIÓN ELÉCTRICA DEL PUENTE ES A TRAVÉS DE UNA PROLONGACIÓN."}, {"pg": "TGVMAR-20SMA02 — Birriel 2 Tn Taller Mecánico Interior— CT Las Playas (Villa María)", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "No"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "No"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}, {"pg": "TGVMAR-20SMA03 — Monorriel 2 Tn Taller Mecánico Exterior— CT Las Playas (Villa María)", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "No Aplica"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "No Aplica"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No Aplica"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "No"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "No Aplica"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": "ES UN MONORIEL (PORTICO)"}, {"pg": "TGVMAR-10SMA01 — Birriel 20 Tn Sala de Turbinas— CT Las Playas (Villa María)", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "No"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "No"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "No"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "No"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "No"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": "LA REPARACION DEL PUENTE GRUA SE ENCUENTRA EN PROCESO DE LICITACION."}], "missing_pgs": []}, "Zona D - Central Térmica San Francisco": {"gerencia": "Generación", "total_pgs": 1, "audited_pgs": 1, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "3 - Gancho con traba de seguridad", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 0, "no": 0, "na": 1, "pct": null}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "8 - Frenos del carro en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "10 - Cable del polipasto en buen estado", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "13 - Botonera de control en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}], "observations": [], "pg_list": [{"pg": "TGSFRA-10SMA01 — Birriel 20 Tn  Sala de Máquinas— CT San Francisco", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "No"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No Aplica"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "No"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}], "missing_pgs": []}, "Zona F - Central Térmica General Levalle": {"gerencia": "Generación", "total_pgs": 1, "audited_pgs": 1, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "3 - Gancho con traba de seguridad", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "8 - Frenos del carro en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "10 - Cable del polipasto en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "13 - Botonera de control en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}], "observations": [{"pg": "TGLEVA-10SMA01 — Birriel 2 Tn Sala de Máquinas — CT General Levalle", "text": "tiene la carcaza del gancho partida en la parte de arriba, el fin de carrera del gancho no funciona y hay que tener cuidado porque sino se descarrila"}], "pg_list": [{"pg": "TGLEVA-10SMA01 — Birriel 2 Tn Sala de Máquinas — CT General Levalle", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "No"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": "tiene la carcaza del gancho partida en la parte de arriba, el fin de carrera del gancho no funciona y hay que tener cuidado porque sino se descarrila"}], "missing_pgs": []}, "Central Térmica Zanichelli": {"gerencia": "Generación", "total_pgs": 2, "audited_pgs": 0, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "2 - Gancho con carga máxima visible", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "3 - Gancho con traba de seguridad", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "7 - Final de carrera del carro de izaje", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "8 - Frenos del carro en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "9 - Finales de carrera superior e inferior", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "10 - Cable del polipasto en buen estado", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "13 - Botonera de control en buen estado", "si": 0, "no": 0, "na": 0, "pct": null}], "observations": [], "pg_list": [], "missing_pgs": ["TGPILA-10SMA01", "TGPILA-20SMA01"]}, "Zona B - PAH El Ferroviario": {"gerencia": "Generación", "total_pgs": 1, "audited_pgs": 0, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "2 - Gancho con carga máxima visible", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "3 - Gancho con traba de seguridad", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "7 - Final de carrera del carro de izaje", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "8 - Frenos del carro en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "9 - Finales de carrera superior e inferior", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "10 - Cable del polipasto en buen estado", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "13 - Botonera de control en buen estado", "si": 0, "no": 0, "na": 0, "pct": null}], "observations": [], "pg_list": [], "missing_pgs": ["HICREJ-10SMA01"]}, "Zona E - Central Hidráulica San Roque": {"gerencia": "Generación", "total_pgs": 4, "audited_pgs": 4, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 4, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 3, "no": 1, "na": 0, "pct": 75}, {"label": "3 - Gancho con traba de seguridad", "si": 0, "no": 4, "na": 0, "pct": 0}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 0, "no": 4, "na": 0, "pct": 0}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 0, "no": 1, "na": 3, "pct": 0}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 0, "no": 4, "na": 0, "pct": 0}, {"label": "7 - Final de carrera del carro de izaje", "si": 0, "no": 1, "na": 3, "pct": 0}, {"label": "8 - Frenos del carro en condiciones", "si": 0, "no": 1, "na": 3, "pct": 0}, {"label": "9 - Finales de carrera superior e inferior", "si": 0, "no": 1, "na": 3, "pct": 0}, {"label": "10 - Cable del polipasto en buen estado", "si": 4, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 1, "no": 0, "na": 3, "pct": 100}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 0, "no": 1, "na": 3, "pct": 0}, {"label": "13 - Botonera de control en buen estado", "si": 0, "no": 1, "na": 3, "pct": 0}], "observations": [{"pg": "HISROQ-10SMA01 — Birriel 25/5 Tn Sala de Alternadores — CH San Roque", "text": "se encuentra en proceso de licitación para mejoras"}, {"pg": "HISROQ-10SMA02 — Monorriel 1,5 Tn Sala de Alternadores— CH San Roque", "text": "CORRESPONDE A PUENTE GRUA CASA VÁLVULAS. IZAJE MANUAL"}, {"pg": "HISROQ-20SMA01 — Monorriel 8,5 Tn Deposito— CH San Roque", "text": "IZAJE MANUAL"}, {"pg": "HISROQ-30SMA01 — Monorriel 10 Tn Casa de Válvula — CH San Roque", "text": "IZAJE MANUAL"}], "pg_list": [{"pg": "HISROQ-10SMA01 — Birriel 25/5 Tn Sala de Alternadores — CH San Roque", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "No"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "No"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "No"}, {"q": "7 - Final de carrera del carro de izaje", "r": "No"}, {"q": "8 - Frenos del carro en condiciones", "r": "No"}, {"q": "9 - Finales de carrera superior e inferior", "r": "No"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "No"}, {"q": "13 - Botonera de control en buen estado", "r": "No"}], "obs": "se encuentra en proceso de licitación para mejoras"}, {"pg": "HISROQ-10SMA02 — Monorriel 1,5 Tn Sala de Alternadores— CH San Roque", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "No"}, {"q": "3 - Gancho con traba de seguridad", "r": "No"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "No"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No Aplica"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "No"}, {"q": "7 - Final de carrera del carro de izaje", "r": "No Aplica"}, {"q": "8 - Frenos del carro en condiciones", "r": "No Aplica"}, {"q": "9 - Finales de carrera superior e inferior", "r": "No Aplica"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "No Aplica"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "No Aplica"}, {"q": "13 - Botonera de control en buen estado", "r": "No Aplica"}], "obs": "CORRESPONDE A PUENTE GRUA CASA VÁLVULAS. IZAJE MANUAL"}, {"pg": "HISROQ-20SMA01 — Monorriel 8,5 Tn Deposito— CH San Roque", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "No"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "No"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No Aplica"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "No"}, {"q": "7 - Final de carrera del carro de izaje", "r": "No Aplica"}, {"q": "8 - Frenos del carro en condiciones", "r": "No Aplica"}, {"q": "9 - Finales de carrera superior e inferior", "r": "No Aplica"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "No Aplica"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "No Aplica"}, {"q": "13 - Botonera de control en buen estado", "r": "No Aplica"}], "obs": "IZAJE MANUAL"}, {"pg": "HISROQ-30SMA01 — Monorriel 10 Tn Casa de Válvula — CH San Roque", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "No"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "No"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No Aplica"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "No"}, {"q": "7 - Final de carrera del carro de izaje", "r": "No Aplica"}, {"q": "8 - Frenos del carro en condiciones", "r": "No Aplica"}, {"q": "9 - Finales de carrera superior e inferior", "r": "No Aplica"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "No Aplica"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "No Aplica"}, {"q": "13 - Botonera de control en buen estado", "r": "No Aplica"}], "obs": "IZAJE MANUAL"}], "missing_pgs": []}, "Zona H - Central Hidráulica Reolín": {"gerencia": "Generación", "total_pgs": 3, "audited_pgs": 2, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "2 - Gancho con carga máxima visible", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "3 - Gancho con traba de seguridad", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "7 - Final de carrera del carro de izaje", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "8 - Frenos del carro en condiciones", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "10 - Cable del polipasto en buen estado", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "13 - Botonera de control en buen estado", "si": 1, "no": 1, "na": 0, "pct": 50}], "observations": [], "pg_list": [{"pg": "HIREOL-10SMA01 — Birriel 55 / 5 Tn Sala de Máquinas — CH Reolín", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}, {"pg": "HIREOL-10SMA02 — Pórtico 4 Tn Compuerta— CH Reolín", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "No"}, {"q": "2 - Gancho con carga máxima visible", "r": "No"}, {"q": "3 - Gancho con traba de seguridad", "r": "No"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "No"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "No"}, {"q": "7 - Final de carrera del carro de izaje", "r": "No"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "No"}, {"q": "10 - Cable del polipasto en buen estado", "r": "No"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "No"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "No"}, {"q": "13 - Botonera de control en buen estado", "r": "No"}], "obs": ""}], "missing_pgs": ["HIREOL-30SMA01"]}, "Zona H - Central Hidráulica Piedras Moras": {"gerencia": "Generación", "total_pgs": 2, "audited_pgs": 2, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "3 - Gancho con traba de seguridad", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "8 - Frenos del carro en condiciones", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "10 - Cable del polipasto en buen estado", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "13 - Botonera de control en buen estado", "si": 2, "no": 0, "na": 0, "pct": 100}], "observations": [], "pg_list": [{"pg": "HIPMOR-10SMA01 — Birriel 35 / 5 Tn Sala de Máquinas— CH Piedras Moras", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}, {"pg": "HIPMOR-30SMA01 — Pórtico 5 Tn Compuerta— CH Piedras Moras", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}], "missing_pgs": []}, "Zona H - Central Hidráulica Los Molinos I": {"gerencia": "Generación", "total_pgs": 2, "audited_pgs": 2, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "3 - Gancho con traba de seguridad", "si": 0, "no": 2, "na": 0, "pct": 0}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 1, "no": 0, "na": 1, "pct": 100}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 1, "no": 0, "na": 1, "pct": 100}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 1, "no": 0, "na": 1, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 1, "no": 0, "na": 1, "pct": 100}, {"label": "8 - Frenos del carro en condiciones", "si": 1, "no": 0, "na": 1, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 0, "no": 1, "na": 1, "pct": 0}, {"label": "10 - Cable del polipasto en buen estado", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 1, "no": 0, "na": 1, "pct": 100}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 1, "no": 0, "na": 1, "pct": 100}, {"label": "13 - Botonera de control en buen estado", "si": 1, "no": 0, "na": 1, "pct": 100}], "observations": [], "pg_list": [{"pg": "HILMO1-10SMA01 — Birriel 40 / 10 Tn Sala de Máquinas— CH Los Molinos I", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "No"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "No"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}, {"pg": "LMO1H-PM-003 — Pórtico 3 Tn Playa de Maniobras— CH Los Molinos I", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "No"}, {"q": "3 - Gancho con traba de seguridad", "r": "No"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "No Aplica"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No Aplica"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "No Aplica"}, {"q": "7 - Final de carrera del carro de izaje", "r": "No Aplica"}, {"q": "8 - Frenos del carro en condiciones", "r": "No Aplica"}, {"q": "9 - Finales de carrera superior e inferior", "r": "No Aplica"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "No Aplica"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "No Aplica"}, {"q": "13 - Botonera de control en buen estado", "r": "No Aplica"}], "obs": ""}], "missing_pgs": []}, "Zona H - Central Hidráulica Los Molinos II": {"gerencia": "Generación", "total_pgs": 1, "audited_pgs": 1, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "3 - Gancho con traba de seguridad", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "8 - Frenos del carro en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "10 - Cable del polipasto en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "13 - Botonera de control en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}], "observations": [], "pg_list": [{"pg": "HILMO2-10SMA01 — Birriel 35 Tn Sala de Máquinas— CH Los Molinos II", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "No"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}], "missing_pgs": []}, "Zona B - Central Hidráulica La Viña": {"gerencia": "Generación", "total_pgs": 1, "audited_pgs": 1, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "3 - Gancho con traba de seguridad", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "7 - Final de carrera del carro de izaje", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "8 - Frenos del carro en condiciones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "9 - Finales de carrera superior e inferior", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "10 - Cable del polipasto en buen estado", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "13 - Botonera de control en buen estado", "si": 0, "no": 1, "na": 0, "pct": 0}], "observations": [{"pg": "HILVIN-10SMA01 — Birriel 20 Tn Sala de Máquinas— CH La Viña", "text": "No funciona por fallas eléctricas."}], "pg_list": [{"pg": "HILVIN-10SMA01 — Birriel 20 Tn Sala de Máquinas— CH La Viña", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "No"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "No"}, {"q": "7 - Final de carrera del carro de izaje", "r": "No"}, {"q": "8 - Frenos del carro en condiciones", "r": "No"}, {"q": "9 - Finales de carrera superior e inferior", "r": "No"}, {"q": "10 - Cable del polipasto en buen estado", "r": "No"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "No"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "No"}, {"q": "13 - Botonera de control en buen estado", "r": "No"}], "obs": "No funciona por fallas eléctricas."}], "missing_pgs": []}, "Zona E - Central Hidráulica La Calera": {"gerencia": "Generación", "total_pgs": 1, "audited_pgs": 0, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "2 - Gancho con carga máxima visible", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "3 - Gancho con traba de seguridad", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "7 - Final de carrera del carro de izaje", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "8 - Frenos del carro en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "9 - Finales de carrera superior e inferior", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "10 - Cable del polipasto en buen estado", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "13 - Botonera de control en buen estado", "si": 0, "no": 0, "na": 0, "pct": null}], "observations": [], "pg_list": [], "missing_pgs": ["HICAL2-10SMA01"]}, "Zona H - Central Hidráulica Cassaffousth": {"gerencia": "Generación", "total_pgs": 1, "audited_pgs": 1, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "3 - Gancho con traba de seguridad", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "8 - Frenos del carro en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "10 - Cable del polipasto en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "13 - Botonera de control en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}], "observations": [{"pg": "HICASS-10SMA01 — Birriel 45 Tn Sala de Máquinas— CH Cassaffousth", "text": "Se encuentra en proceso de reacondicionamiento de acuerdo al plan de Gerencia de Generación.-"}], "pg_list": [{"pg": "HICASS-10SMA01 — Birriel 45 Tn Sala de Máquinas— CH Cassaffousth", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "No"}, {"q": "3 - Gancho con traba de seguridad", "r": "No"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "No"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "No"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "No"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": "Se encuentra en proceso de reacondicionamiento de acuerdo al plan de Gerencia de Generación.-"}], "missing_pgs": []}, "Zona H - Central Hidráulica Fitz Simon": {"gerencia": "Generación", "total_pgs": 1, "audited_pgs": 1, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "3 - Gancho con traba de seguridad", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "7 - Final de carrera del carro de izaje", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "8 - Frenos del carro en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "10 - Cable del polipasto en buen estado", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 0, "no": 1, "na": 0, "pct": 0}, {"label": "13 - Botonera de control en buen estado", "si": 0, "no": 1, "na": 0, "pct": 0}], "observations": [{"pg": "HIFSIM-10SMA01 — Birriel 30 Tn Sala de Máquinas — CH Fitz Simon", "text": "SE ENCUENTRA EN PROCESO DE LICITACIÓN LA ACTUALIZACIÓN DEL PUENTE GRÚA SEGÚN PLAN DE GERENCIA DE GENERACIÓN"}], "pg_list": [{"pg": "HIFSIM-10SMA01 — Birriel 30 Tn Sala de Máquinas — CH Fitz Simon", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "No"}, {"q": "3 - Gancho con traba de seguridad", "r": "No"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "No"}, {"q": "7 - Final de carrera del carro de izaje", "r": "No"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "No"}, {"q": "10 - Cable del polipasto en buen estado", "r": "No"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "No"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "No"}, {"q": "13 - Botonera de control en buen estado", "r": "No"}], "obs": "SE ENCUENTRA EN PROCESO DE LICITACIÓN LA ACTUALIZACIÓN DEL PUENTE GRÚA SEGÚN PLAN DE GERENCIA DE GENERACIÓN"}], "missing_pgs": []}, "Zona H - Complejo Hidroeléctrico Río Grande": {"gerencia": "Generación", "total_pgs": 6, "audited_pgs": 5, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 5, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 2, "no": 3, "na": 0, "pct": 40}, {"label": "3 - Gancho con traba de seguridad", "si": 5, "no": 0, "na": 0, "pct": 100}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 5, "no": 0, "na": 0, "pct": 100}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 5, "no": 0, "na": 0, "pct": 100}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 5, "no": 0, "na": 0, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 5, "no": 0, "na": 0, "pct": 100}, {"label": "8 - Frenos del carro en condiciones", "si": 5, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 5, "no": 0, "na": 0, "pct": 100}, {"label": "10 - Cable del polipasto en buen estado", "si": 5, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 5, "no": 0, "na": 0, "pct": 100}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 5, "no": 0, "na": 0, "pct": 100}, {"label": "13 - Botonera de control en buen estado", "si": 5, "no": 0, "na": 0, "pct": 100}], "observations": [{"pg": "RGDEHB-10SMA01 — Puente Grúa N°1 190 + 20 T — CH Río Grande", "text": "Cable polipasto: presenta deterioro admisible por los años de uso. Se prevee su cambio en el Revamping. Botonera de control: está prevista la incorporación de la función de hombre muerto."}, {"pg": "RGDEHB-10SMA02 — Puente Grúa N°2 190 + 20 T — CH Río Grande", "text": "Cable polipasto: presenta deterioro admisible por los años de uso. Se prevee su cambio en el Revamping. Botonera de control: está prevista la incorporación de la función de hombre muerto."}, {"pg": "RGDEHB-10SMA03 — Pórtico 16 + 0,9 T — CH Río Grande", "text": "Cable polipasto: presenta deterioro admisible por los años de uso. Se prevee su cambio en el Revamping."}, {"pg": "RGDEHB-10SMA04 — Pórtico 25 T — CH Río Grande", "text": "Traba de seguridad: el uso del izaje es exclusivo para el movimiento de las compuertas de ataguías por lo tanto el gancho y el sistema de traba es especial para dicho uso. Cable polipasto: presenta deterioro admisible por los años de uso. Se prevee su cambio en el Revamping. Botonera de control: no posee botonera de hombre muerto pero el mismo está incorporado en el sistema de comando, pues al soltar la palanca de comando la misma vuelva a la posición de reposo."}, {"pg": "RGDEHB-10SMA05 — Pórtico 17 + 0,9 T — CH Río Grande", "text": "Traba de seguridad: el uso del izaje es exclusivo para el movimiento de las compuertas de ataguías por lo tanto el gancho y el sistema de traba es especial para dicho uso.Cable polipasto: presenta deterioro admisible por los años de uso. Se prevee su cambio en el Revamping. Botonera de control: no posee botonera de hombre muerto pero el mismo está incorporado en el sistema de comando, pues al soltar la palanca de comando la misma vuelva a la posición de reposo."}], "pg_list": [{"pg": "RGDEHB-10SMA01 — Puente Grúa N°1 190 + 20 T — CH Río Grande", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": "Cable polipasto: presenta deterioro admisible por los años de uso. Se prevee su cambio en el Revamping. Botonera de control: está prevista la incorporación de la función de hombre muerto."}, {"pg": "RGDEHB-10SMA02 — Puente Grúa N°2 190 + 20 T — CH Río Grande", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": "Cable polipasto: presenta deterioro admisible por los años de uso. Se prevee su cambio en el Revamping. Botonera de control: está prevista la incorporación de la función de hombre muerto."}, {"pg": "RGDEHB-10SMA03 — Pórtico 16 + 0,9 T — CH Río Grande", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "No"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": "Cable polipasto: presenta deterioro admisible por los años de uso. Se prevee su cambio en el Revamping."}, {"pg": "RGDEHB-10SMA04 — Pórtico 25 T — CH Río Grande", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "No"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": "Traba de seguridad: el uso del izaje es exclusivo para el movimiento de las compuertas de ataguías por lo tanto el gancho y el sistema de traba es especial para dicho uso. Cable polipasto: presenta deterioro admisible por los años de uso. Se prevee su cambio en el Revamping. Botonera de control: no posee botonera de hombre muerto pero el mismo está incorporado en el sistema de comando, pues al soltar la palanca de comando la misma vuelva a la posición de reposo."}, {"pg": "RGDEHB-10SMA05 — Pórtico 17 + 0,9 T — CH Río Grande", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "No"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": "Traba de seguridad: el uso del izaje es exclusivo para el movimiento de las compuertas de ataguías por lo tanto el gancho y el sistema de traba es especial para dicho uso.Cable polipasto: presenta deterioro admisible por los años de uso. Se prevee su cambio en el Revamping. Botonera de control: no posee botonera de hombre muerto pero el mismo está incorporado en el sistema de comando, pues al soltar la palanca de comando la misma vuelva a la posición de reposo."}], "missing_pgs": ["RGDEHB-10SMA00"]}, "Zona B - Central Hidráulica Boca del Río": {"gerencia": "Generación", "total_pgs": 1, "audited_pgs": 1, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "3 - Gancho con traba de seguridad", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "8 - Frenos del carro en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "10 - Cable del polipasto en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "13 - Botonera de control en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}], "observations": [], "pg_list": [{"pg": "HIBRIO-10SMA01 — Monorriel 3 Tn Sala de Máquinas— CH Boca del Río", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}], "missing_pgs": []}, "Almacén Central": {"gerencia": "Otras", "total_pgs": 1, "audited_pgs": 1, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "3 - Gancho con traba de seguridad", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "8 - Frenos del carro en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "10 - Cable del polipasto en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "13 - Botonera de control en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}], "observations": [], "pg_list": [{"pg": "CBA-ALM-001 — 10 Tn 15 Mts Depósito de Cables — Almacén Central", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}], "missing_pgs": []}, "Zona A - Complejo Villa Revol - Construcción de Centrales y Estaciones": {"gerencia": "Otras", "total_pgs": 1, "audited_pgs": 0, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "2 - Gancho con carga máxima visible", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "3 - Gancho con traba de seguridad", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "7 - Final de carrera del carro de izaje", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "8 - Frenos del carro en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "9 - Finales de carrera superior e inferior", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "10 - Cable del polipasto en buen estado", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "13 - Botonera de control en buen estado", "si": 0, "no": 0, "na": 0, "pct": null}], "observations": [], "pg_list": [], "missing_pgs": ["CVR-CCE-001"]}, "Zona A - RAT Córdoba": {"gerencia": "Transmisión", "total_pgs": 1, "audited_pgs": 1, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "2 - Gancho con carga máxima visible", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "3 - Gancho con traba de seguridad", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "8 - Frenos del carro en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "10 - Cable del polipasto en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 1, "no": 0, "na": 0, "pct": 100}, {"label": "13 - Botonera de control en buen estado", "si": 1, "no": 0, "na": 0, "pct": 100}], "observations": [{"pg": "CBA-RAT-001 — Zona A - RAT Córdoba", "text": "N/A"}], "pg_list": [{"pg": "CBA-RAT-001 — Zona A - RAT Córdoba", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": "N/A"}], "missing_pgs": []}, "Zona A - Complejo Villa Revol - Taller Electromecánico": {"gerencia": "Transmisión", "total_pgs": 1, "audited_pgs": 0, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "2 - Gancho con carga máxima visible", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "3 - Gancho con traba de seguridad", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "7 - Final de carrera del carro de izaje", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "8 - Frenos del carro en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "9 - Finales de carrera superior e inferior", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "10 - Cable del polipasto en buen estado", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 0, "no": 0, "na": 0, "pct": null}, {"label": "13 - Botonera de control en buen estado", "si": 0, "no": 0, "na": 0, "pct": null}], "observations": [], "pg_list": [], "missing_pgs": ["CVR-TE-005"]}, "Zona A - Complejo Villa Revol - Área Transformadores": {"gerencia": "Transmisión", "total_pgs": 2, "audited_pgs": 2, "questions": [{"label": "1 - Identificación de carga máx. visible (PG)", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "2 - Gancho con carga máxima visible", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "3 - Gancho con traba de seguridad", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "4 - Desplazamiento sin vibraciones/tirones", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "5 - Dispositivo final de carrera (puente)", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "6 - Carro de izaje sin vibraciones/tirones", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "7 - Final de carrera del carro de izaje", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "8 - Frenos del carro en condiciones", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "9 - Finales de carrera superior e inferior", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "10 - Cable del polipasto en buen estado", "si": 2, "no": 0, "na": 0, "pct": 100}, {"label": "11 - Barra/cables conductores PG en condiciones", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "12 - Alimentación carro de izaje en condiciones", "si": 1, "no": 1, "na": 0, "pct": 50}, {"label": "13 - Botonera de control en buen estado", "si": 2, "no": 0, "na": 0, "pct": 100}], "observations": [{"pg": "CVR-AT-080 — Birriel 80 Tn Área Transformadores — Complejo Villa Revol", "text": "el problema principal es las eses de paloma que producen diferentes fallas"}], "pg_list": [{"pg": "CVR-AT-010 — 10 Tn Área Transformadores — Complejo Villa Revol", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "No"}, {"q": "2 - Gancho con carga máxima visible", "r": "No"}, {"q": "3 - Gancho con traba de seguridad", "r": "Sí"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "No"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "Sí"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "Sí"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": ""}, {"pg": "CVR-AT-080 — Birriel 80 Tn Área Transformadores — Complejo Villa Revol", "responses": [{"q": "1 - Identificación de carga máx. visible (PG)", "r": "Sí"}, {"q": "2 - Gancho con carga máxima visible", "r": "Sí"}, {"q": "3 - Gancho con traba de seguridad", "r": "No"}, {"q": "4 - Desplazamiento sin vibraciones/tirones", "r": "Sí"}, {"q": "5 - Dispositivo final de carrera (puente)", "r": "Sí"}, {"q": "6 - Carro de izaje sin vibraciones/tirones", "r": "Sí"}, {"q": "7 - Final de carrera del carro de izaje", "r": "Sí"}, {"q": "8 - Frenos del carro en condiciones", "r": "Sí"}, {"q": "9 - Finales de carrera superior e inferior", "r": "Sí"}, {"q": "10 - Cable del polipasto en buen estado", "r": "Sí"}, {"q": "11 - Barra/cables conductores PG en condiciones", "r": "No"}, {"q": "12 - Alimentación carro de izaje en condiciones", "r": "No"}, {"q": "13 - Botonera de control en buen estado", "r": "Sí"}], "obs": "el problema principal es las eses de paloma que producen diferentes fallas"}], "missing_pgs": []}}};
+
+const CATEGORIES = [
+  {name: "Identificación de Carga", qs: [0,1,2]},
+  {name: "Desplazamiento del Puente", qs: [3,4]},
+  {name: "Carro de Izaje", qs: [5,6,7]},
+  {name: "Izaje Principal", qs: [8,9]},
+  {name: "Alimentación Eléctrica", qs: [10,11,12]}
+];
+
+function getPillClass(pct) {
+  if (pct === null) return 'pill-na';
+  if (pct >= 85) return 'pill-good';
+  if (pct >= 60) return 'pill-warn';
+  return 'pill-bad';
+}
+
+function getScoreClass(pct) {
+  if (pct >= 85) return 'pct-good';
+  if (pct >= 60) return 'pct-warn';
+  return 'pct-bad';
+}
+
+function calcGlobalScore(sd) {
+  let si = 0, total = 0;
+  sd.questions.forEach(q => { si += q.si; total += q.si + q.no; });
+  return total > 0 ? Math.round(si / total * 100) : null;
+}
+
+function filterSectors() {
+  const gerencia = document.getElementById('gerenciaSelect').value;
+  const sectorSel = document.getElementById('sectorSelect');
+  sectorSel.innerHTML = '<option value="">— Seleccioná un sector —</option>';
+  
+  Object.entries(DATA.sector_data).forEach(([sector, sd]) => {
+    if (!gerencia || sd.gerencia === gerencia) {
+      const opt = document.createElement('option');
+      opt.value = sector;
+      opt.textContent = sector;
+      sectorSel.appendChild(opt);
+    }
+  });
+
+  document.getElementById('sectorDisplay').innerHTML = `
+    <div class="placeholder-box">
+      <div class="placeholder-icon">🏗</div>
+      <div class="placeholder-text">Seleccioná un sector para ver el detalle de respuestas.</div>
+    </div>`;
+}
+
+function showSector() {
+  const sector = document.getElementById('sectorSelect').value;
+  if (!sector) return;
+  const sd = DATA.sector_data[sector];
+  if (!sd) return;
+
+  const globalScore = calcGlobalScore(sd);
+  const scoreDisplay = globalScore !== null ? globalScore + '%' : 'Sin datos';
+  const scoreClass = globalScore !== null ? getScoreClass(globalScore) : 'pct-bad';
+
+  let html = `
+    <div class="sector-title-bar">
+      <div>
+        <div class="sector-name">${sector}</div>
+        <div class="sector-meta">Gerencia: ${sd.gerencia} &nbsp;·&nbsp; ${sd.audited_pgs} / ${sd.total_pgs} equipos auditados</div>
+      </div>
+    </div>`;
+
+  if (sd.audited_pgs === 0) {
+    html += `<div class="no-audit-banner">
+      <div class="no-audit-icon">📭</div>
+      <div><strong>Sin auditoría recibida.</strong> Este sector no envió registros en esta presente edición.<br>
+      ${sd.missing_pgs.length > 0 ? 'PG pendientes: ' + sd.missing_pgs.join(', ') : ''}</div>
+    </div>`;
+  } else {
+    // Summary table (colapsado por defecto)
+    html += `<div class="q-wrap"><div class="q-wrap-header toggle" onclick="toggleCollapse(this)">
+      <div class="q-toggle-left"><div class="q-dot"></div>Resumen por criterio — ${sd.audited_pgs} equipo(s)</div>
+      <div class="q-chevron">▶</div>
+    </div>
+    <div class="q-collapsible-body">
+    <table class="qtable"><thead><tr>
+      <th style="width:55%">Criterio</th>
+      <th>Sí ✓</th><th>No ✗</th><th>N/A</th><th style="min-width:90px">Conformidad</th>
+    </tr></thead><tbody>`;
+    
+    CATEGORIES.forEach(cat => {
+      html += `<tr class="cat-row"><td colspan="5">${cat.name}</td></tr>`;
+      cat.qs.forEach(qi => {
+        const q = sd.questions[qi];
+        const pc = q.pct;
+        const pillClass = getPillClass(pc);
+        const pillText = pc !== null ? pc + '%' : 'N/A';
+        html += `<tr><td>${q.label}</td>
+          <td>${q.si}</td><td>${q.no}</td><td>${q.na}</td>
+          <td><span class="pill ${pillClass}">${pillText}</span></td></tr>`;
+      });
+    });
+    html += `</tbody></table></div></div>`;
+
+    // Individual PG tabs
+    if (sd.pg_list.length > 0) {
+      html += `<div class="q-wrap"><div class="q-wrap-header"><div class="q-dot"></div>Detalle por Puente Grúa</div>
+      <div style="padding:16px">`;
+      
+      html += `<div class="pg-tabs">`;
+      sd.pg_list.forEach((pg, i) => {
+        const hasObs = pg.obs && pg.obs.trim() !== '';
+        const shortName = pg.pg.split('—')[0].trim();
+        html += `<div class="pg-tab${i===0?' active':''}${hasObs?' has-obs':''}" onclick="switchPG(this, 'pg_${i}_${Date.now()}')" data-panel="pg_panel_${i}">${shortName}</div>`;
+      });
+      html += `</div>`;
+
+      sd.pg_list.forEach((pg, i) => {
+        html += `<div class="pg-panel${i===0?' active':''}" id="pg_panel_${i}">
+          <div class="pg-detail">
+            <div class="pg-detail-header">
+              <div class="pg-detail-name">${pg.pg}</div>
+            </div>`;
+        html += `<table class="pg-table"><tbody>`;
+        
+        CATEGORIES.forEach(cat => {
+          html += `<tr class="pg-cat-row"><td colspan="2">${cat.name}</td></tr>`;
+          cat.qs.forEach(qi => {
+            const r = pg.responses[qi];
+            let rClass = '';
+            let rIcon = '';
+            if (r.r === 'Sí') { rClass = 'resp-si'; rIcon = '✓ Sí'; }
+            else if (r.r === 'No') { rClass = 'resp-no'; rIcon = '✗ No'; }
+            else { rClass = 'resp-na'; rIcon = r.r; }
+            html += `<tr><td>${r.q}</td><td class="${rClass}">${rIcon}</td></tr>`;
+          });
+        });
+        html += `</tbody></table></div></div>`;
+      });
+      html += `</div></div>`;
+    }
+
+    // Cuadro OBSERVACIONES DEL FINAL.
+    if (sd.observations.length > 0) {
+      html += `<div style="background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px">
+        <div class="q-wrap-header"><div class="q-dot"></div>Observaciones del Sector</div>
+        <div style="padding:16px;display:flex;flex-direction:column;gap:10px">`;
+      sd.observations.forEach(obs => {
+        html += `<div style="border-left:3px solid var(--warning);padding:10px 14px;background:var(--warning-light);border-radius:0 8px 8px 0">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--dark);margin-bottom:4px">${obs.pg}</div>
+          <div style="font-size:13px;color:var(--warning)">${obs.text}</div>
+        </div>`;
+      });
+      html += `</div></div>`;
+    }
+
+    // Missing PGs
+    if (sd.missing_pgs.length > 0) {
+      html += `<div style="background:#fff8e1;border:1px solid rgba(212,120,10,0.25);border-radius:10px;padding:14px 18px;font-size:13px;color:var(--warning)">
+        <strong>⚠ Equipos sin auditoría en este sector:</strong> ${sd.missing_pgs.join(', ')}
+      </div>`;
+    }
+  }
+
+  document.getElementById('sectorDisplay').innerHTML = html;
+}
+
+function toggleCollapse(headerEl) {
+  headerEl.classList.toggle('open');
+  const body = headerEl.nextElementSibling;
+  if (body) body.classList.toggle('open');
+}
+
+function switchPG(el, uid) {
+  const container = el.closest('.q-wrap').querySelector('[style*="padding:16px"]');
+  container.querySelectorAll('.pg-tab').forEach(t => t.classList.remove('active'));
+  container.querySelectorAll('.pg-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  const panelId = el.getAttribute('data-panel');
+  const panel = container.querySelector('#' + panelId);
+  if (panel) panel.classList.add('active');
+}
+</script>
+</body>
+</html>
